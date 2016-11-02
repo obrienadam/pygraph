@@ -70,20 +70,26 @@ class CsrGraph(object):
         path[vtx0].append(vtx0)
         distances[vtx0] = 0.
 
+        self.iters = 0
+
         while False in visited:
             current = distances.index(min([distances[i] for i in [j for j in xrange(self.num_verts()) if not visited[j]]]))
 
             if isinf(distances[current]):
-                raise ValueError('No path possible!')
+                if path[vtx1][-1] == vtx1:
+                    break
+                else:
+                    raise ValueError('No path possible!')
 
             for nb, w in zip(self.get_neighbours(current), self.get_edge_weights(current)):
                 dist = distances[current] + w
 
                 if dist < distances[nb]: # shorter path has been found
-                    path[nb] = path[current] + [nb]
+                    path[nb] = path[current] + [nb] if not nb == current else [nb]
                     distances[nb] = dist
 
             visited[current] = True
+            self.iters += 1
 
         return path[vtx1], self.get_path_distance(path[vtx1])
 
@@ -99,7 +105,7 @@ if __name__ == '__main__':
     for i in xrange(50):
         graph.add_vertex(w=random())
 
-    for i in xrange(300):
+    for i in xrange(80):
         graph.connect_vertices(randint(0, 49), randint(0, 49), random())
 
     print graph
@@ -107,3 +113,4 @@ if __name__ == '__main__':
 
     path = graph.djikstra_shortest_path(1, 36)
     print 'Shortest path between vertices {} and {}:'.format(path[0][0], path[0][-1]), path
+    print 'Took', graph.iters, 'iterations to converge.'
